@@ -1,0 +1,22 @@
+#cloud-config
+package_update: true
+package_upgrade: false
+ssh_pwauth: false
+disable_root: true
+packages:
+  - ca-certificates
+  - curl
+  - dnsutils
+  - git
+  - iproute2
+  - jq
+  - lsof
+  - python3
+  - shellcheck
+  - ufw
+write_files:
+  - path: /etc/linux-lab-baseline
+    owner: root:root
+    permissions: '0644'
+    content: |
+      linux-lab baseline v1
