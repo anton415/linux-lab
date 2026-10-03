@@ -83,7 +83,72 @@
   - Anton identified that the VM itself had started, but cloud-init failed to install some packages. Subsequent checks separated that from the VPN-related outbound-connectivity failure. The later exit 141 was isolated to the validation script rather than the VM.
 - AI assistance used:
   - ChatGPT explained the repository flow, suggested bounded diagnostic commands, interpreted the resulting evidence, prepared repository evidence, and implemented the two small configuration/check fixes after Anton's first diagnosis.
-- Remaining acceptance criteria / decision:
-  - Code/evidence review.
-  - Anton independently explains the final baseline settings, recreation path, and failure domains during human acceptance.
-  - Human decides whether to merge and close issue #1.
+- Final acceptance:
+  - Human explanation accepted.
+  - PR #22 merged as commit `5c61f8213af3ebbbfdf617f2122f989b2678bbf6`.
+  - Issue #1 closed.
+  - `linux-lab-rebuild` stopped after the recreation proof.
+
+
+## Retrospective
+
+### Time
+
+- Planned: **1h30m**
+- Actual: **3h45m**
+- Overrun: **2h15m**
+- Actual / planned: **2.5x**
+- T1 20-hour budget remaining after this session: **16h15m**
+
+The estimate assumed a mostly happy-path VM bootstrap. In practice, the first run exposed three separate problems that required diagnosis: VPN/guest networking interaction, cloud-init permission type corruption, and a false-negative shell check.
+
+### What went well
+
+- The investigation separated failure domains instead of treating "VM failed" as one problem:
+  - the VM itself booted;
+  - DNS worked;
+  - outbound TCP failed only with RedShield enabled;
+  - cloud-init had a separate schema problem;
+  - the final exit 141 came from the validation script rather than the VM.
+- The failed VM was diagnosed before being replaced. No manual in-guest package repair was used to manufacture a passing result.
+- The fixes were small and evidence-driven:
+  - explicitly preserve `0644` as a YAML string;
+  - remove the `pipefail`/SIGPIPE false negative from the SSH check.
+- Reproducibility was demonstrated rather than assumed: one VM was recreated, restarted and rechecked, and a second clean VM reached the same baseline.
+- The portable boundary became clearer: cloud-init plus `guest-check.sh` can be reused across compatible Ubuntu VM backends, while provisioning scripts are currently Multipass-specific.
+
+### What did not go well
+
+- The initial 1h30m estimate did not include a host/VPN compatibility preflight.
+- Too much time was spent considering Multipass version/platform changes before the simplest A/B test isolated RedShield as the networking variable.
+- The original validation script contained a pipeline that was valid-looking but brittle under `set -o pipefail`.
+- Multipass works for the lab only with a current operational caveat: guest Internet access needed for provisioning fails while RedShield is enabled in this macOS/QEMU setup.
+
+### Decisions
+
+1. Keep the current Multipass implementation as a **working reference backend**, not yet as the assumed long-term local VM backend.
+2. Do not rewrite the Linux learning core for another hypervisor. Preserve:
+   - `vm/cloud-init/base.yaml`;
+   - `vm/scripts/guest-check.sh`;
+   - evidence and Linux exercises.
+3. Treat backend-specific creation/transport as a thin adapter. If UTM, VMware Fusion, or another backend is selected, add provider-specific provisioning around the same guest baseline rather than forking the learning content.
+4. Test an alternate VM backend with **RedShield left enabled** before choosing the daily driver.
+5. Timebox that comparison to **60–90 minutes**. If a candidate cannot prove Ubuntu boot + guest Internet + reusable baseline within the timebox, stop and compare rather than entering another long troubleshooting session.
+6. Protect the T1 parallel path: do not use this overrun as a reason to postpone the Python/Yandex model call. Cut optional Linux/course breadth before cutting the agent work.
+
+### Next experiment
+
+The next VM-platform experiment should answer one narrow question:
+
+> Can a disposable Ubuntu ARM64 guest run the same baseline while RedShield remains enabled?
+
+Minimum comparison criteria:
+
+- works on Apple Silicon;
+- guest outbound HTTP/HTTPS works with RedShield enabled;
+- can consume the existing cloud-init configuration directly or with a small adapter;
+- can execute the existing `guest-check.sh`;
+- supports repeatable create/delete or clone/recreate workflow;
+- does not require a large GUI-only manual installation procedure for every lab run.
+
+Do not decide between UTM, VMware Fusion, or another backend based on brand preference. Use the measured result of this bounded experiment.
