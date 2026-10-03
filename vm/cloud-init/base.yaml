@@ -17,6 +17,6 @@ packages:
 write_files:
   - path: /etc/linux-lab-baseline
     owner: root:root
-    permissions: '0644'
+    permissions: !!str '0644'
     content: |
       linux-lab baseline v1
