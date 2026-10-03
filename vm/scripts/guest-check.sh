@@ -15,6 +15,7 @@ for tool in curl dig git ip jq lsof python3 shellcheck ufw; do
   command -v "$tool" >/dev/null
 done
 systemctl is-active --quiet ssh
-sudo -n /usr/sbin/sshd -T | grep -Fxq 'passwordauthentication no'
+sshd_effective_config=$(sudo -n /usr/sbin/sshd -T)
+grep -Fxq 'passwordauthentication no' <<<"$sshd_effective_config"
 printf 'PASS: Ubuntu %s; architecture %s; systemd; baseline tools; SSH key authentication.\n' \
   "$VERSION_ID" "$(uname -m)"
