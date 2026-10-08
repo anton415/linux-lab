@@ -75,7 +75,7 @@ The [usage instructions](../labs/networking/README.md) document arguments, exit 
 ## Remaining work and limits
 
 - The DNS/HTTP health-check script is implemented and its tested outcomes are recorded above. Remaining issue acceptance still requires the broader human demonstration and review.
-- This session did not demonstrate every required distinction between name-resolution failure, absent listener, blocked reachability, and HTTP-level error.
-- Both HTTP exercise requests originated inside the VM; a host-to-VM request was not tested in this drill.
-- The diagnostic fixture was temporary. Usage instructions accompany the script; a committed reproducible failure fixture and fresh-VM or second-host reproduction remain unverified.
+- This session did not demonstrate every required distinction between name-resolution failure, absent listener, blocked reachability, and HTTP-level error. The [follow-up](8-host-to-vm-http.md) adds practiced hostname-lookup, absent-tunnel-listener, and HTTP-error distinctions; blocked reachability and independent diagnosis remain.
+- Both HTTP exercise requests originated inside the VM; a host-to-VM request was not tested in this drill. The [2026-10-08 follow-up](8-host-to-vm-http.md) subsequently verified HTTP from the Mac through an explicit SSH tunnel.
+- The original diagnostic fixture was temporary. The [follow-up runbook](../labs/networking/host-to-vm-http.md) now records repeatable synthetic-server and missing-page steps; a full run of the combined runbook, fresh-VM recreation, and second-host reproduction remain unverified.
 - Publication does not establish formal issue acceptance. Issue #8 remains open; its acceptance criteria and project status are unchanged.

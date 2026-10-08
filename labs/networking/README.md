@@ -32,3 +32,10 @@ echo "$?"
 For example, curl error 7 indicates a connection failure; error 22 accompanied by HTTP 404 means the HTTP server answered with an error status. Both are reported as `HTTP FAIL`, but their diagnostic messages differ.
 
 The initial implementation is a small HTTP check; it does not inspect response-body contents or operate the target service. See the [exercise evidence](../../evidence/8-t1-networking.md) for tested cases, human work, assistance, and remaining issue criteria.
+
+## HTTP from the Mac
+
+Use the [host-to-VM HTTP runbook](host-to-vm-http.md) for the explicit SSH tunnel,
+synthetic server, successful request, missing-page response, and bounded cleanup.
+See the [follow-up evidence](../../evidence/8-host-to-vm-http.md) for the observed
+Mac requests and human interpretation.
