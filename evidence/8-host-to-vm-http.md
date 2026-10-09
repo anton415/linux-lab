@@ -79,5 +79,6 @@ this evidence.
 These observations support the practiced distinction between hostname lookup,
 a failed connection at the stopped Mac tunnel endpoint, and an HTTP error
 response. They do not establish a complete diagnosis without a supplied cause or
-diagnostic hints. Blocked reachability, independent failure diagnosis/recovery,
+diagnostic hints. The [2026-10-09 follow-up](8-blocked-connection.md) adds a guided
+blocked-connection timeout and recovery. Independent failure diagnosis/recovery,
 final practical review, and human acceptance of issue #8 remain.

@@ -39,3 +39,9 @@ Use the [host-to-VM HTTP runbook](host-to-vm-http.md) for the explicit SSH tunne
 synthetic server, successful request, missing-page response, and bounded cleanup.
 See the [follow-up evidence](../../evidence/8-host-to-vm-http.md) for the observed
 Mac requests and human interpretation.
+
+## Blocked connection in the VM
+
+The [bounded packet-drop exercise](blocked-connection.md) demonstrates a
+connection timeout while the HTTP server remains listening, followed by recovery
+when the temporary rule is removed. See the [guided evidence](../../evidence/8-blocked-connection.md).
