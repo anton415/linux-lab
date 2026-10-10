@@ -1,0 +1,28 @@
+# Lima 2.2.0; Apple Silicon / VZ. Shared check: vm/scripts/guest-check.sh.
+# Keep the packages and marker aligned with vm/cloud-init/base.yaml.
+vmType: vz
+arch: aarch64
+cpus: 2
+memory: 4GiB
+disk: 20GiB
+plain: true
+mounts: []
+images:
+  - location: https://cloud-images.ubuntu.com/releases/noble/release-20260926/ubuntu-24.04-server-cloudimg-arm64.img
+    arch: aarch64
+    digest: sha256:1d6bffe64b848468ac97f821d369a4846d983de1800ccf6b5ec8853e85cefc55
+provision:
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -euo pipefail
+      export DEBIAN_FRONTEND=noninteractive
+      apt-get update
+      apt-get install -y ca-certificates curl dnsutils git iproute2 jq lsof python3 shellcheck ufw
+      printf 'linux-lab baseline v1\n' > /etc/linux-lab-baseline
+      chmod 0644 /etc/linux-lab-baseline
+      install -d -m 0755 /etc/ssh/sshd_config.d
+      printf 'PasswordAuthentication no\nPermitRootLogin no\n' > /etc/ssh/sshd_config.d/00-linux-lab.conf
+      chmod 0644 /etc/ssh/sshd_config.d/00-linux-lab.conf
+      /usr/sbin/sshd -t
+      systemctl restart ssh
