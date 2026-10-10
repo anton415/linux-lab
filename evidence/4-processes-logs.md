@@ -118,3 +118,25 @@ exec timeout --signal=TERM --kill-after=5s 1200s \
 - This follow-up adds verified recovery, targeted termination and signal
   explanation. Full unaided diagnosis remains unproven; evidence review and human
   acceptance remain pending. Issue #4 is not marked complete by this record.
+
+### Exit-status and network-error explanation check — 2026-10-10
+
+- Related to #4; the network-error distinctions also support #8.
+- Evidence baseline: `f27592e557ceb3b5eaf3eaed1f85231c76870eef`.
+- Planned time: no separate estimate recorded. Actual active time:
+  **10 minutes**, reported by Anton; additional to the 60-minute practical above.
+- Scope: discussion of the saved failure results and hypothetical HTTP/DNS/timeout
+  cases. No new live failure or recovery was run during this explanation check.
+
+| Topic | Anton's answer and assistance |
+|---|---|
+| Startup exit 2 and curl exit 7 | Initially reversed the causal order (`7 -> 2`). Codex explained that rejected server arguments caused exit 2, leaving no listener and causing curl exit 7. Anton then correctly said changing only curl would not repair the invalid server command. |
+| HTTP 404 | Independently explained that the client connected and received an error response because the requested page was not found. |
+| Name-resolution failure / curl exit 6 | Independently explained that the HTTP server was not reached; proposed checking hostname spelling and using `getent ahostsv4`. |
+| Timeout despite a listener | Correctly rejected a firewall-only conclusion and suggested the command could take too long. Codex clarified that the server might accept the connection but respond too slowly. |
+| Distinguishing connection from response delay | Anton asked which command to use. Codex supplied bounded `curl -v` syntax and explained `Trying`, `Connected to`, and HTTP response lines. Given a successful connection followed by a timeout without an HTTP response, Anton correctly selected server response handling for investigation. |
+
+This adds explanation evidence, with guided correction for the exit-status
+sequence and instruction for verbose curl diagnostics. It does not establish an
+unaided end-to-end diagnosis or a live timeout investigation. Issue acceptance
+remains pending; neither #4 nor #8 was closed.
