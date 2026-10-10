@@ -121,3 +121,15 @@ The numeric loopback target does not demonstrate a DNS-server query. The health 
 After verification, Codex stopped only the verified exercise server with SIGTERM. Both bounded launcher sessions ended, and absence of listeners on 18082 and 18083 was confirmed. Temporary synthetic files and logs were retained for inspection. The automatic 20-minute expiry and forced-kill fallback were not exercised because cleanup used SIGTERM.
 
 Learning evidence: Anton proposed the initial hypothesis and investigation strategy, identified the port mismatch from the evidence, and proposed the correct repair. Diagnostic command syntax and HTTP verification commands were supplied; Codex performed the configuration edit, restart, and cleanup. This is an assisted practical review with human diagnosis and repair reasoning, not a fully unaided execution or a fresh-VM reproduction. It does not establish the separate process-lab acceptance criteria or close issue #8.
+
+## Final T1 diagnostic practical — 2026-10-10
+
+The [final process practical](4-processes-logs.md#final-t1-practical-missing-command-and-independent-repair--2026-10-10)
+adds human-led diagnosis of an unavailable executable causing startup failure
+and no listener on port 18085. Anton selected the diagnostic commands, identified
+and specified the repair, and chose the successful HTTP verification and targeted
+shutdown. Codex executed the commands and provided limited formatting/status-read
+help. Planned time was 15 minutes; actual active time was 30 minutes, counted once
+in that process record. No new DNS, firewall or host-to-VM test was performed.
+This supplements the earlier guided networking evidence; final review and human
+acceptance of issue #8 remain pending.

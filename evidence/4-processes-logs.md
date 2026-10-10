@@ -140,3 +140,62 @@ This adds explanation evidence, with guided correction for the exit-status
 sequence and instruction for verbose curl diagnostics. It does not establish an
 unaided end-to-end diagnosis or a live timeout investigation. Issue acceptance
 remains pending; neither #4 nor #8 was closed.
+
+## Final T1 practical: missing command and independent repair — 2026-10-10
+
+- Related to #4; connectivity diagnosis also supports #8.
+- Exercise source revision: `a1e8807e84ab580f9cd692efbc18c79825596284`.
+  This record was added after PR #27 merged, on baseline
+  `e02fa9268459a397407fadfd223d5f29d2a033f0`.
+- Environment: existing Lima VM; HTTP response reported Python 3.12.3.
+  No fresh VM, second host, or new firewall exercise.
+- Planned active time: **15 minutes**. Actual active time: **30 minutes**,
+  reported by Anton, excluding breaks; separate from the earlier 60 and 10 minutes.
+- Codex prepared a disposable synthetic fixture, verified successful HTTP with
+  the available interpreter, and stopped that preflight process. The exercise
+  launcher used an unavailable command, bound only to loopback, and retained a
+  1200-second timeout with a five-second forced-stop fallback.
+- Anton was given the target URL, initial curl exit 7 and fixture/log locations.
+  The cause and repair were not supplied before his diagnosis.
+
+### Commands, results and ownership
+
+The notation `$exercise_dir` and `$server_pid` below replaces the temporary path
+and freshly verified PID; Anton's actual commands used literal paths and PIDs.
+
+| Step | Command / observation | Ownership |
+|---|---|---|
+| First hypothesis | Nothing may be listening on port 18085 | Anton proposed before the first check |
+| Listener inspection | `sudo ss -ltnp`: no listener on 18085 | Anton chose; Codex ran |
+| Startup log | `cat "$exercise_dir/stderr.log"`: timeout could not run `python3-lab`, no such file or directory | Anton chose; Codex ran |
+| Diagnose and inspect | Anton identified the missing command; `cat "$exercise_dir/start.sh"; command -v python3` showed `python3-lab` in the script and available `/usr/bin/python3` | Anton chose interpretation and commands; Codex ran |
+| Repair | `sed -i 's/python3-lab/python3/' "$exercise_dir/start.sh"` | Anton proposed exact repair; Codex applied it and verified the saved script with `cat` and `bash -n` |
+| Start | `cd "$exercise_dir"; ./start.sh >recovery-stdout.log 2>recovery-stderr.log &` | Anton chose; Codex ran, guarded failed directory changes and saved the launcher PID |
+| Verify HTTP | `curl --noproxy '*' -i --max-time 5 http://127.0.0.1:18085/`: HTTP 200, `Synthetic T1 final check OK`, exit 0 | Anton chose; Codex ran |
+| Inspect processes | `ps -eo pid,ppid,user,stat,%cpu,rss,args \| grep '[h]ttp.server'`: timeout parent and Python child visible | Anton chose; Codex ran |
+| Interpret resources | Correctly selected Python child PID, timeout parent PID, CPU `0.1%` and RSS `19176 KiB` | Anton interpreted the displayed output correctly |
+| Show full owner | `ps -p "$server_pid" -o pid,ppid,user:32,args`: full owner shown, matching the original VM account | Anton requested help with column width, then explicitly requested execution of the supplied command |
+| Targeted stop | `kill -TERM "$server_pid"`, then `ss -ltnp 'sport = :18085'`: no listener row | Anton chose; Codex verified exact process arguments before sending SIGTERM and ran the listener check |
+| Saved startup status | `cat "$exercise_dir/exit-status.txt"`: `127` | Codex supplied the read command after a repeated owner-formatting question; Anton reported `127` |
+| Final cleanup verification | No listener on 18085 and original Python server PID absent | Codex verified before writing evidence |
+
+### Learning outcome and limits
+
+- Anton independently chose the initial hypothesis, diagnostic sequence, repair,
+  HTTP verification, process inspection and targeted termination commands.
+  Codex executed those commands at his direction; this is human-led diagnosis
+  with delegated execution, not a claim that Anton typed every command in the VM.
+- The diagnosis connected the missing executable to failed startup and the absent
+  listener. After repair, the original target returned a successful HTTP response.
+- Anton independently interpreted PID, PPID, CPU and RSS. Assistance was limited
+  to widening the owner column, reading the saved exit-status file, and explaining
+  exit 127's meaning. His later cause/repair explanation matched his earlier
+  independent diagnosis and exact proposed replacement.
+- The server's owner was displayed in full but is omitted here for public privacy.
+  The exact temporary identifier and process IDs are likewise omitted.
+- No broad kill, SSH change, firewall change or public listener was used.
+  The verified Python process was stopped; temporary files/logs were retained.
+  Its termination exit status and custom cleanup behavior were not measured.
+- This practical supplies the previously missing human-led diagnosis and repair
+  evidence for review. Earlier guided attempts remain accurately recorded.
+  Final human acceptance of #4 and #8 remains pending; no issue is closed here.
