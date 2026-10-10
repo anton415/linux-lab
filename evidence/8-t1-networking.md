@@ -79,3 +79,45 @@ The [usage instructions](../labs/networking/README.md) document arguments, exit 
 - Both HTTP exercise requests originated inside the VM; a host-to-VM request was not tested in this drill. The [2026-10-08 follow-up](8-host-to-vm-http.md) subsequently verified HTTP from the Mac through an explicit SSH tunnel.
 - The original diagnostic fixture was temporary. The [follow-up runbook](../labs/networking/host-to-vm-http.md) now records repeatable synthetic-server and missing-page steps; a full run of the combined runbook, fresh-VM recreation, and second-host reproduction remain unverified.
 - Publication does not establish formal issue acceptance. Issue #8 remains open; its acceptance criteria and project status are unchanged.
+
+## Port-mismatch practical review — 2026-10-10
+
+- Related to issue #8; source revision `9426756f795ebb02e1d44dcd951db2cf8f988192`.
+- Existing Lima VM; loopback-only synthetic HTTP fixture. No firewall, SSH, or VM configuration changes. VM image and tool versions were not reverified for this review.
+- Planned time: approximately 15 minutes. Actual active time: 20 minutes (reported by Anton).
+- `<fixture>` below means the unique temporary exercise directory; process IDs, account details, and raw terminal history are omitted.
+
+Codex prepared a temporary `start.sh` launcher that read a `port` file and started Python's HTTP server with `timeout --signal=TERM --kill-after=5s 1200s`, bound to `127.0.0.1` and serving only a synthetic `www/index.html`. The configured port was 18083; the required client target was `http://127.0.0.1:18082/`. Bash syntax passed. Before the human investigation, Codex verified a successful response on 18083 and health-check failure with exit 1 on 18082. The fault's cause was not supplied in the exercise prompt.
+
+Anton's first hypothesis was that nothing was listening on 18082. He chose a socket check. The terminal first showed a check of the earlier exercise's port 18081, followed by an edited check with no matching listener; Codex separately confirmed the absence of a listener on 18082. An earlier printed exit status of 0 was unrelated to an HTTP request and was not treated as recovery evidence.
+
+Anton next proposed checking whether the server process was running and reading its logs. When he was unsure of the commands, Codex supplied:
+
+```bash
+ps -eo pid,ppid,user,stat,args | grep '[h]ttp.server'
+cat <fixture>/server.log
+```
+
+The process arguments and startup log both showed port 18083. Anton identified this port and then proposed changing it to 18082 and restarting the server. Codex verified the exact exercise process and owner, stopped that process with SIGTERM, changed the temporary port configuration, and restarted the bounded launcher. The old listener disappeared and the new listener appeared on 18082.
+
+Anton first verified `LISTEN` on `127.0.0.1:18082` with `ss`. Codex explained that the HTTP check was still needed and supplied the health-check invocation and immediate exit-status capture. From the Linux lab repository, the equivalent commands are:
+
+```bash
+bash labs/networking/check.sh 127.0.0.1 18082
+http_lab_status=$?
+printf 'Exit status: %s\n' "$http_lab_status"
+```
+
+Codex read the observed terminal result:
+
+```text
+DNS OK: 127.0.0.1
+HTTP OK: http://127.0.0.1:18082/
+Exit status: 0
+```
+
+The numeric loopback target does not demonstrate a DNS-server query. The health check verifies a successful HTTP request; it discards the response body and does not print the numeric HTTP status.
+
+After verification, Codex stopped only the verified exercise server with SIGTERM. Both bounded launcher sessions ended, and absence of listeners on 18082 and 18083 was confirmed. Temporary synthetic files and logs were retained for inspection. The automatic 20-minute expiry and forced-kill fallback were not exercised because cleanup used SIGTERM.
+
+Learning evidence: Anton proposed the initial hypothesis and investigation strategy, identified the port mismatch from the evidence, and proposed the correct repair. Diagnostic command syntax and HTTP verification commands were supplied; Codex performed the configuration edit, restart, and cleanup. This is an assisted practical review with human diagnosis and repair reasoning, not a fully unaided execution or a fresh-VM reproduction. It does not establish the separate process-lab acceptance criteria or close issue #8.
