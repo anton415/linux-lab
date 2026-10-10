@@ -103,3 +103,77 @@ References: [Multipass and cloud-init](https://canonical.com/multipass/docs/stab
 [executing guest commands](https://canonical.com/multipass/docs/latest/reference/command-line-interface/exec/),
 [cloud-config validation](https://docs.cloud-init.io/en/latest/howto/debug_user_data.html),
 [VM deletion semantics](https://canonical.com/multipass/docs/latest/reference/command-line-interface/delete/).
+
+
+## Lima follow-up on Apple Silicon
+
+The daily lab uses Lima. The accepted Multipass result is recorded in
+[evidence/1-vm-baseline.md](../evidence/1-vm-baseline.md); the instructions above
+remain the Multipass path. The Lima follow-up uses the same packages, baseline
+marker, and unchanged `vm/scripts/guest-check.sh`.
+
+`vm/lima/baseline.yaml` targets Lima 2.2.0 on macOS ARM64 with VZ, 2 CPUs, 4 GiB
+RAM, and a 20 GiB disk. Plain mode disables mounts and the container runtime;
+Lima still provides SSH access and runs system provisioning. No repository data
+or provider credentials are copied into the guest. UFW is installed, not enabled.
+
+The configuration selects the dated Ubuntu 24.04 ARM64 server image from
+2026-09-26 and its published SHA-256 checksum. This is a new baseline run, not a
+copy of the current VM disk. Package repositories are not frozen, so installed
+package versions can differ. Other architectures and a second Mac are unverified.
+
+Run these commands **on the Mac**, from a checkout containing this configuration.
+Creation must succeed before starting; an existing name is not a fresh recreation.
+Keep the daily `linux-lab-lima` VM intact.
+
+```bash
+limactl version
+limactl validate vm/lima/baseline.yaml
+limactl create --tty=false --name=linux-lab-rebuild-lima vm/lima/baseline.yaml
+limactl start --timeout=15m linux-lab-rebuild-lima
+limactl shell linux-lab-rebuild-lima sudo timeout 600 cloud-init status --wait
+limactl shell linux-lab-rebuild-lima bash -s < vm/scripts/guest-check.sh
+```
+
+After recording successful provisioning and baseline checks, stop, start, and
+check only the reproduction instance:
+
+```bash
+limactl stop linux-lab-rebuild-lima
+limactl start --timeout=15m linux-lab-rebuild-lima
+limactl shell linux-lab-rebuild-lima sudo timeout 600 cloud-init status --wait
+limactl shell linux-lab-rebuild-lima bash -s < vm/scripts/guest-check.sh
+limactl stop linux-lab-rebuild-lima
+```
+
+Record source revision (and any uncommitted configuration), Lima version/backend,
+image checksum, guest/package versions, actual check results, VPN state, assistance,
+and active time. A successful syntax check or `Running` state alone does not prove
+reproduction. The first Lima boot passed the shared baseline check on 2026-10-10; cloud-init
+completed with the deprecation warnings described below. The stop/start check
+also passed on 2026-10-10 with the same warnings. The reproduction VM was then
+stopped; its disk remains available. No deletion is part of these commands.
+
+With Lima 2.2.0 and cloud-init 26.1, the observed `cloud-init status --wait` exit
+was 2 (`degraded done`). Inspection found no fatal errors and only two deprecated
+fields in Lima-generated user data: `ssh-authorized-keys` and a string-valued
+`uid`. These match [Lima issue #5227](https://github.com/lima-vm/lima/issues/5227).
+Inspect `cloud-init status --long --format json` on each run: exit 2 is not
+a blanket success. Record the actual warnings separately from the baseline
+result; do not clear status files or edit the running guest to manufacture a clean
+first-boot result. See [the follow-up evidence](../evidence/1-vm-baseline.md).
+
+If setup fails, preserve the instance and inspect its local logs:
+
+```bash
+limactl list
+limactl shell linux-lab-rebuild-lima sudo cloud-init status --long
+limactl shell linux-lab-rebuild-lima sudo journalctl -u cloud-final --no-pager -n 60
+```
+
+Review logs before publishing evidence. If a dated image later moves to Ubuntu's
+archive, verify its new official location and checksum; do not silently substitute
+an unverified image or remove checksum validation.
+
+References: [Lima plain mode](https://lima-vm.io/docs/config/plain/),
+[Ubuntu image checksums](https://cloud-images.ubuntu.com/releases/noble/release-20260926/SHA256SUMS).

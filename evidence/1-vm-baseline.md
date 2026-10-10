@@ -152,3 +152,106 @@ Minimum comparison criteria:
 - does not require a large GUI-only manual installation procedure for every lab run.
 
 Do not decide between UTM, VMware Fusion, or another backend based on brand preference. Use the measured result of this bounded experiment.
+
+
+## Lima reproduction follow-up — 2026-10-10 (checks and explanation complete)
+
+This is a follow-up for the daily Lima environment; the accepted Multipass result
+above remains a separate observation.
+
+- Source: base commit `e84cdb2ce6e6069c864665cffcb81af8ba6e7c44`, local branch
+  `issue-1-lima-reproduction`, with uncommitted `vm/lima/baseline.yaml` and docs.
+- Configuration SHA-256: `590abe484b38bb7ad6e76c14b117939599c0e857a287a14ced760fed3865897f`.
+- Unchanged shared check SHA-256: `5b3a6cf7e1888193b8c1f0043629157986792442f361992a49f72feba52ff848`.
+- Host: macOS ARM64, Lima 2.2.0, VZ. New instance: `linux-lab-rebuild-lima`,
+  2 CPUs, 4 GiB RAM, 20 GiB disk, plain mode. Daily instance stayed running.
+- Image: Ubuntu 24.04 server ARM64, release `20260926`; SHA-256
+  `1d6bffe64b848468ac97f821d369a4846d983de1800ccf6b5ec8853e85cefc55`.
+  Checksum verified against Ubuntu's dated release manifest before creation.
+- Guest observed: Ubuntu 24.04.5 LTS, kernel `6.8.0-142-generic`.
+- No repository data or provider credentials were copied into the new VM.
+
+Codex prepared the configuration, checked it with `limactl validate`, Bash syntax
+and ShellCheck, matched the ten baseline packages, then created the stopped VM.
+The first ad hoc package comparison incorrectly included a `write_files` entry;
+scoping that check to `packages` resolved the checker error without changing the
+configuration. The older configured image URL redirected to Ubuntu's archive,
+whose HTTPS checksum request timed out; the new configuration instead explicitly
+selects the verified, available dated release above.
+
+Anton ran `limactl start --timeout=15m linux-lab-rebuild-lima` from the Mac.
+His terminal reached `READY`; separate inspection confirmed `Running`. This is
+assisted execution from a supplied command, not an unaided recreation assessment.
+Codex then verified:
+
+- `sudo timeout 600 cloud-init status --wait`: `status: done`, **exit 2**.
+- Detailed status: `degraded done`; no fatal errors; only deprecation warnings
+  for Lima-generated `users.0.ssh-authorized-keys` and string-valued `users.0.uid`.
+  Field names/types were inspected without publishing user identity or SSH keys.
+- Streaming the unchanged `vm/scripts/guest-check.sh` into the new VM: **exit 0**,
+  Ubuntu 24.04 / aarch64 / systemd / baseline tools / SSH check passed.
+- Effective SSH configuration: `passwordauthentication no`, `permitrootlogin no`.
+
+The warnings match [Lima issue #5227](https://github.com/lima-vm/lima/issues/5227)
+and the [Lima 2.2.0 user-data template](https://github.com/lima-vm/lima/blob/v2.2.0/pkg/cidata/cidata.TEMPLATE.d/user-data).
+[Cloud-init exit 2](https://docs.cloud-init.io/en/latest/explanation/return_codes.html)
+means completion with recoverable errors. This run proves a working baseline
+with a known configuration caveat, not warning-free provisioning. No in-guest
+repair or warning suppression was applied.
+
+Observed package versions:
+
+```text
+ca-certificates 20260601~24.04.1
+cloud-init 26.1-0ubuntu1~24.04.1
+curl 8.5.0-2ubuntu10.15
+dnsutils 1:9.18.39-0ubuntu0.24.04.7
+git 1:2.43.0-1ubuntu7.3
+iproute2 6.1.0-1ubuntu6.4
+jq 1.7.1-3ubuntu0.24.04.2
+lsof 4.95.0-1build3
+python3 3.12.3-0ubuntu2.1
+shellcheck 0.9.0-1
+ufw 0.36.2-6
+```
+
+### Restart verification and final stop
+
+Anton ran the supplied stop/start commands on the Mac. His terminal confirmed
+that the reproduction instance shut down, started again, and reached `READY`.
+Codex independently verified `Running` and repeated the checks:
+
+- `cloud-init status --wait --format json`: exit 2, `degraded done`, no fatal
+  errors, and the same two generated-configuration deprecations; no new warnings.
+- Unchanged shared baseline check: exit 0; Ubuntu, architecture, systemd, tools,
+  and SSH checks passed again.
+- Effective SSH configuration still had password authentication and root login
+  disabled.
+
+Codex stopped only `linux-lab-rebuild-lima`; the stop command exited 0. A final
+inventory confirmed the reproduction VM `Stopped` and the daily VM `Running`.
+The reproduction disk was retained. Both stops emitted a hostagent diagnostic
+about accepting on a closed network connection during shutdown; the observed
+shutdown and subsequent restart outcomes above are recorded separately.
+
+Technical result: a fresh Lima VM reached the baseline and passed the same check
+after a stop/start, with the documented cloud-init compatibility caveat.
+
+### Human explanation and active time
+
+Asked why a fresh VM was needed instead of only restarting the existing VM,
+Anton explained that the goal was to test from scratch and check whether the
+configuration was correct. This satisfies the conceptual check. Codex clarified
+that restarting an existing VM can preserve earlier manual fixes.
+
+Execution remains assisted: Codex prepared the configuration and supplied the
+commands, and Anton launched and restarted the VM. This is not evidence of an
+unaided recreation skill.
+
+- Planned active time: not recorded separately for this follow-up.
+- Actual active time: **15 minutes**, reported by Anton, excluding breaks.
+
+The recreation checks, explanation, and time record are complete. The documented
+cloud-init limitation remains for final T1 acceptance review. VPN state was not
+observed; this run does not establish compatibility with RedShield enabled. No
+second host or other architecture was tested.
