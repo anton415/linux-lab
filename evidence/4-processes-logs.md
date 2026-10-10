@@ -49,3 +49,94 @@ The parent's identity was not separately checked during this exercise.
 - Codex prepared the fixture, provided commands and explanations, diagnosed the missing shell variable, reviewed terminal results, and wrote this evidence.
 - SIGTERM cleanup versus SIGKILL was explained; forced termination was not run.
 - Remaining acceptance: independent diagnosis and explanation, followed by evidence review and human acceptance. These guided results do not complete issue #4.
+
+## T1 follow-up: HTTP startup failure and targeted stop — 2026-10-10
+
+- Related to #4; listening-port and HTTP observations also support #8.
+- Source revision: `7b6725c3756989a88f524c5f523a1162fdacbd5b`,
+  branch `issue-4-t1-practical`.
+- Environment: existing Lima VM; recovery response reported Python 3.12.3.
+  No fresh VM or second-host reproduction was performed for this follow-up.
+- Planned active time: **15 minutes**. Actual active time: approximately
+  **60 minutes**, reported by Anton, excluding breaks.
+- Fixture: Codex prepared a disposable directory with a synthetic web page,
+  startup script and separate logs. A valid preflight served the expected page,
+  then was stopped before the deliberately faulty launch.
+- Public command notation below substitutes `$exercise_dir` for the actual
+  temporary directory, `$previous_dir` for an earlier exercise directory and
+  `$server_pid` for the freshly verified server PID. These are notation, not
+  claims that Anton defined shell variables; his commands used literal paths/PIDs.
+
+The original startup script contained:
+
+```bash
+#!/usr/bin/env bash
+set -u
+fixture_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+exec timeout --signal=TERM --kill-after=5s 1200s \
+  python3 -u -m http.server --bind 127.0.0.1 \
+  --directory "$fixture_dir/www" --port 18084
+```
+
+| Command or check | Observed result | Attribution |
+|---|---|---|
+| Initial faulty launch; saved exit status and request to `http://127.0.0.1:18084/` | Startup exit `2`; curl exit `7`, connection failed | Codex fixture setup |
+| `sudo ss -ltnp` | DNS and SSH listeners present; none on port 18084 | Anton chose; Codex ran in VM |
+| `ps -eo pid,ppid,user,stat,args \| grep '[h]ttp.server'` | No matching server process | Anton chose; Codex ran |
+| `cat "$previous_dir/server.log"` | Historical success on ports 18083/18082, not the current target | Anton chose the previous log; Codex explained the mismatch |
+| `cat "$exercise_dir/stderr.log"` | Usage ended with `[port]`; error: `unrecognized arguments: --port` | Anton requested the read after Codex supplied the current log path |
+| `sed -i 's/--port 18084/18084/' "$exercise_dir/start.sh"`, then `cat "$exercise_dir/start.sh"` | Only the unsupported option was removed; port 18084 retained | Codex supplied edit; Anton reported running it; Codex verified file and `bash -n` |
+| `"$exercise_dir/start.sh" > "$exercise_dir/recovery-stdout.log" 2> "$exercise_dir/recovery-stderr.log" &` | Recovery server started with a 1200-second lifetime bound | Codex supplied; Anton reported running |
+| `curl --noproxy '*' -i --max-time 5 http://127.0.0.1:18084/` and `ss -ltnp 'sport = :18084'` | HTTP 200, body `Synthetic T1 Linux check OK`; Python listener on loopback port 18084 | Anton reported running curl; Codex independently verified response and listener |
+| `ps -p "$server_pid" -o pid,ppid,user,stat,%cpu,rss,args` | Server PID, parent PID, truncated owner and expected Python command; state `S`, CPU `0.0%`, RSS `19180 KiB` | Codex supplied; later directly verified in VM |
+| `kill -TERM "$server_pid"`, then `ss -ltnp 'sport = :18084'` | Server PID absent; no listener remained | Codex verified current PID/command first; Anton reported running the supplied stop; Codex verified process and listener absence |
+
+### Diagnosis, explanation and assistance
+
+- Anton selected the listener and process checks himself. No separate initial
+  hypothesis was recorded before those commands.
+- After reading stderr, Anton proposed switching to port 18083 or 18082.
+  Codex explained that the unsupported option, rather than the number, was the
+  fault and supplied the positional-port correction. When Anton asked how to
+  edit the script, Codex supplied the replacement command.
+- Anton later explained: "The error is about `--port`: this program doesn't
+  recognize that option." This followed the explanation; it is not evidence of
+  an independently discovered repair.
+- Anton correctly identified PPID as the parent process ID. He explained that
+  SIGTERM gives a process a chance to stop and clean up, while SIGKILL forces it
+  to stop immediately.
+- Initial command execution was explicitly delegated to Codex because the app
+  terminal was unavailable. Anton subsequently connected to the VM and reported
+  performing the guided edit, recovery and stop; Codex checked their outcomes.
+- The saved startup exit status was checked by Codex. Anton's independent
+  interpretation of that exit status, owner, CPU and RSS was not demonstrated.
+- Observed termination proves process/listener removal after the reported SIGTERM
+  command. No custom cleanup handler or exit status was verified for this Python
+  HTTP server; this does not replace the earlier worker cleanup evidence.
+- Only loopback synthetic resources were used. No firewall, SSH configuration,
+  management route or unrelated process was changed. Temporary logs were retained.
+- This follow-up adds verified recovery, targeted termination and signal
+  explanation. Full unaided diagnosis remains unproven; evidence review and human
+  acceptance remain pending. Issue #4 is not marked complete by this record.
+
+### Exit-status and network-error explanation check — 2026-10-10
+
+- Related to #4; the network-error distinctions also support #8.
+- Evidence baseline: `f27592e557ceb3b5eaf3eaed1f85231c76870eef`.
+- Planned time: no separate estimate recorded. Actual active time:
+  **10 minutes**, reported by Anton; additional to the 60-minute practical above.
+- Scope: discussion of the saved failure results and hypothetical HTTP/DNS/timeout
+  cases. No new live failure or recovery was run during this explanation check.
+
+| Topic | Anton's answer and assistance |
+|---|---|
+| Startup exit 2 and curl exit 7 | Initially reversed the causal order (`7 -> 2`). Codex explained that rejected server arguments caused exit 2, leaving no listener and causing curl exit 7. Anton then correctly said changing only curl would not repair the invalid server command. |
+| HTTP 404 | Independently explained that the client connected and received an error response because the requested page was not found. |
+| Name-resolution failure / curl exit 6 | Independently explained that the HTTP server was not reached; proposed checking hostname spelling and using `getent ahostsv4`. |
+| Timeout despite a listener | Correctly rejected a firewall-only conclusion and suggested the command could take too long. Codex clarified that the server might accept the connection but respond too slowly. |
+| Distinguishing connection from response delay | Anton asked which command to use. Codex supplied bounded `curl -v` syntax and explained `Trying`, `Connected to`, and HTTP response lines. Given a successful connection followed by a timeout without an HTTP response, Anton correctly selected server response handling for investigation. |
+
+This adds explanation evidence, with guided correction for the exit-status
+sequence and instruction for verbose curl diagnostics. It does not establish an
+unaided end-to-end diagnosis or a live timeout investigation. Issue acceptance
+remains pending; neither #4 nor #8 was closed.
