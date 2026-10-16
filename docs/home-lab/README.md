@@ -24,7 +24,7 @@ does not establish a senior level.
 | Item | Current role / fact |
 | --- | --- |
 | Mac mini M4 Pro | Personal daily computer; stays in the Apple ecosystem. |
-| Employer-managed PC | Work only. **No experiments**, configuration changes, or lab dependencies. |
+| Employer-managed PC | Work only. **No experiments**, configuration changes, or lab dependencies. Case dimensions reported as **310 × 100 × 340 mm** (axis orientation/cable clearance not yet verified). |
 | Keenetic Extra KN-1711 | Existing home router; two Keenetic Air units and the two PCs use its four available wired LAN connections. |
 | Keenetic Air × 2 | Existing devices in other rooms; their operating modes and detailed configuration are not documented here. |
 | ATEN DisplayPort KVM | Owned; suitability for future video connections remains to be verified. |
@@ -32,6 +32,24 @@ does not establish a senior level.
 
 Nothing above asserts that a rack, Ethernet switch, Linux development PC,
 hypervisor server, backup appliance, or GPU node has been purchased.
+
+## Rack form-factor and aesthetic priorities (user-reported 2026-10-16)
+
+Approximate available envelope: **1,000 mm wide × 800 mm deep × 2,400 mm
+high**. These are coarse planning limits, not verified maintenance clearances.
+The rack will be in a multipurpose living/working space where **quiet
+operation, heat, stability, and electrical safety** are essential.
+
+This is intended to be a **premium, professional-looking, long-lived centerpiece
+for 5+ years of incremental growth**. Preference: a **white powder-coated
+enclosure with a tempered-glass front**, high-quality cable management and
+thoughtful accessories. These priorities replace an earlier 18–24U
+price/compactness-first assumption.
+
+**Provisional target (not yet a SKU or purchase approval): 42U × 600 mm
+wide × 800 mm deep**, with exact external dimensions/clearances to be
+confirmed. A 47–48U option is not automatically better merely because
+room height is available. See the [rack design brief](rack-design.md).
 
 ## Selected network decision — planned, not implemented
 
@@ -79,15 +97,18 @@ common dependencies; this is not a claim of full isolation.
 6. **Public-by-default documentation.** Never commit router exports, hostnames,
    addresses, secrets, account data, employer information, or raw network captures.
 
-See [physical network topology](network.md) for As-Is and proposed cabling
-options and the [phased roadmap](roadmap.md) for learning outcomes through 2027.
+See the [selected physical network topology](network.md),
+[long-term rack design brief](rack-design.md), and
+[phased roadmap](roadmap.md) through 2027.
 
 ## Open decisions — do not treat as approved
 
-- Rack location, internal usable depth, suitable mounting/rail layout, weight,
-  ventilation and acceptable noise. A 24–32U format has been *discussed*, not chosen.
-- Physical size and permitted placement of the work PC; no employer-machine
-  modification is part of this plan.
+- Exact **42U cabinet model and finish**, usable depth, supported shelf/rail
+  layout, door/side access, anti-tip/floor loading, ventilation and acceptable
+  operating noise. 42U is a *recommendation*, not yet the selected product.
+- Physical case dimensions were reported, but **orientation, ventilation,
+  safe shelf fit, plug clearance and permitted placement of the work PC**
+  still need confirmation; no employer-machine modification is planned.
 - Switch port count (8–16 is a candidate), managed/VLAN feature set, uplink
   speeds, placement and cable route. **Work PC direct wiring is decided**.
 - Gateway/firewall and VLAN routing design; a switch alone is not a security
