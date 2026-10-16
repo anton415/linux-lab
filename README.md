@@ -50,8 +50,9 @@ The [home lab documentation](docs/home-lab/README.md) records the existing
 physical network, proposed Ethernet switch layouts, and a phased expansion
 [roadmap through 2027](docs/home-lab/roadmap.md). These are **plans**, not
 purchased equipment, deployed infrastructure, or completed learning issues.
-The [network diagrams](docs/home-lab/network.md) distinguish current links
-from alternatives that still need a decision.
+The [network diagrams](docs/home-lab/network.md) show current connections and
+the **selected future wiring** (work PC remains directly on Keenetic Extra);
+the switch and other planned hardware are not installed.
 
 ## Repository layout
 
