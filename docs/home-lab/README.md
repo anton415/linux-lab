@@ -35,14 +35,17 @@ hypervisor server, backup appliance, or GPU node has been purchased.
 
 ## Rack form-factor and aesthetic priorities (user-reported 2026-10-16)
 
-Approximate available envelope: **1,000 mm wide × 800 mm deep × 2,400 mm
-high**. These are coarse planning limits, not verified maintenance clearances.
+Approximate available **width: 1,000 mm** and **height: 2,400 mm**.
+An **800 mm-deep cabinet plus a 100–150 mm rear cable gap** is acceptable
+(900–950 mm total depth). This does **not** confirm rear-door swing or
+service access. These are coarse planning limits, not verified clearances.
 The rack will be in a multipurpose living/working space where **quiet
 operation, heat, stability, and electrical safety** are essential.
 
 This is intended to be a **premium, professional-looking, long-lived centerpiece
-for 5+ years of incremental growth**. Preference: a **white powder-coated
-enclosure with a tempered-glass front**, high-quality cable management and
+for 5+ years of incremental growth**. A **gray powder-coated
+enclosure is explicitly acceptable**, while white is optional; retain
+a **tempered-glass front**, high-quality cable management and
 thoughtful accessories. These priorities replace an earlier 18–24U
 price/compactness-first assumption.
 
@@ -103,9 +106,11 @@ See the [selected physical network topology](network.md),
 
 ## Open decisions — do not treat as approved
 
-- Exact **42U cabinet model and finish**, usable depth, supported shelf/rail
-  layout, door/side access, anti-tip/floor loading, ventilation and acceptable
-  operating noise. 42U is a *recommendation*, not yet the selected product.
+- Exact **42U cabinet model** (currently Cabeus is the visual favorite;
+  cheaper ExeGate and mid-range ЦМО remain candidates), usable depth,
+  supported shelf/rail layout, rear-door access beyond the confirmed
+  100–150 mm gap, anti-tip/floor loading, ventilation and acceptable
+  nighttime noise. Gray is acceptable; **no model is purchased or approved**.
 - Physical case dimensions were reported, but **orientation, ventilation,
   safe shelf fit, plug clearance and permitted placement of the work PC**
   still need confirmation; no employer-machine modification is planned.
