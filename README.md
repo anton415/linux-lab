@@ -44,6 +44,15 @@ exercises to existing application issues. Finance-lab currently builds static
 React/Vite files; its browser data stays in browser storage. Linux server backups
 do not automatically back up those budgets.
 
+## Home lab architecture (planning)
+
+The [home lab documentation](docs/home-lab/README.md) records the existing
+physical network, proposed Ethernet switch layouts, and a phased expansion
+[roadmap through 2027](docs/home-lab/roadmap.md). These are **plans**, not
+purchased equipment, deployed infrastructure, or completed learning issues.
+The [network diagrams](docs/home-lab/network.md) distinguish current links
+from alternatives that still need a decision.
+
 ## Repository layout
 
 ```text
