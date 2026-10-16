@@ -33,6 +33,19 @@ does not establish a senior level.
 Nothing above asserts that a rack, Ethernet switch, Linux development PC,
 hypervisor server, backup appliance, or GPU node has been purchased.
 
+## Selected network decision — planned, not implemented
+
+**Decision confirmed 2026-10-16:** both Keenetic Air devices and the work PC
+stay directly connected to Keenetic Extra. The Mac mini's existing Extra LAN
+port becomes the **single switch uplink**; connect Mac mini and future lab
+machines behind the switch. Extra still has four occupied LAN ports. The work
+PC remains outside lab experiments and does not depend on switch uptime.
+
+This is an **approved design direction**, not approval to buy a switch or
+change any live cabling. See the [selected physical diagram](network.md).
+A dedicated firewall/VLAN design, switch selection and actual installation
+remain pending.
+
 ## Proposed — eventual component roles
 
 | Component | Intended responsibility | Acquisition/implementation |
@@ -76,7 +89,7 @@ options and the [phased roadmap](roadmap.md) for learning outcomes through 2027.
 - Physical size and permitted placement of the work PC; no employer-machine
   modification is part of this plan.
 - Switch port count (8–16 is a candidate), managed/VLAN feature set, uplink
-  speeds, cable route, and whether the work PC stays directly on Extra.
+  speeds, placement and cable route. **Work PC direct wiring is decided**.
 - Gateway/firewall and VLAN routing design; a switch alone is not a security
   boundary for all traffic.
 - Linux workstation CPU/RAM/storage specification, actual VM capacity, backup
